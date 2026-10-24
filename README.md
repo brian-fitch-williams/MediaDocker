@@ -74,6 +74,27 @@ Match `PUID`/`PGID` to your host user (`id -u` / `id -g`) so media files stay wr
 
 Default web UI login is **nzbget** / **tegbzn6789** (linuxserver image defaults). Change via `NZBGET_USER` / `NZBGET_PASS` before first start, or in Settings → Security after login. Configure your Usenet provider under Settings → News-Servers.
 
+**URLs:** open **http://localhost:6789/** (root). NZBGet also serves the same UI at **http://localhost:6789/nzbget/** (trailing slash). There is no `WEB_ROOT` env var on the linuxserver image.
+
+### NZBGet blank white page
+
+If Sonarr/Radarr/Plex work but NZBGet is a blank white page:
+
+1. Try both **http://localhost:6789/** and **http://localhost:6789/nzbget/** (hard-refresh / private window).
+2. Check logs: `docker compose logs nzbget` — look for `Could not read configuration templates`, `WebDir`, or `503`.
+3. Inspect `./config/nzbget/nzbget.conf`. For linuxserver it should look like:
+   - `WebDir=${AppDir}/webui` (or `/app/nzbget/webui`)
+   - `ConfigTemplate=${AppDir}/webui/nzbget.conf.template`
+   - `MainDir=/config`
+   - `DestDir=/downloads/completed`, `InterDir=/downloads/intermediate`
+4. **Migrating a native Linux install** (e.g. `/home/labuser/nzbget/`) often leaves `WebDir` empty or pointed at a host path that does not exist in the container — that yields a blank UI. Fix those two settings, then `docker compose up -d --force-recreate nzbget`.
+5. Nuclear option: `mv config/nzbget/nzbget.conf config/nzbget/nzbget.conf.bak`, recreate the container to generate a fresh conf, re-enter news-server settings.
+6. Confirm health: `docker compose ps` (nzbget healthcheck hits `/` then `/nzbget/`).
+
+### Migrating from a Linux host
+
+See **[docs/migrate-linux-configs.md](docs/migrate-linux-configs.md)** for copying Sonarr (NzbDrone), Radarr, NZBGet, and Plex configs into `./config/*`, path remaps, permissions, and a host-specific checklist for `shaka` / `labuser`.
+
 ### Wire Sonarr / Radarr to NZBGet
 
 In Sonarr and Radarr:
@@ -94,12 +115,13 @@ If imports fail with permission errors, align `PUID`/`PGID` with the owner of `.
 
 ```
 .
-├── docker-compose.yml   # Sonarr, Radarr, Plex, NZBGet
-├── .env.example         # Paths, ports, PUID/PGID/TZ, claim token
-├── config/              # Per-app config (created on first run)
-├── media/tv             # TV library
-├── media/movies         # Movie library
-└── downloads            # NZBGet output → *arr import
+├── docker-compose.yml              # Sonarr, Radarr, Plex, NZBGet
+├── .env.example                    # Paths, ports, PUID/PGID/TZ, claim token
+├── docs/migrate-linux-configs.md   # Move configs from a Linux host into ./config
+├── config/                         # Per-app config (created on first run)
+├── media/tv                        # TV library
+├── media/movies                    # Movie library
+└── downloads                       # NZBGet output → *arr import
 ```
 
 ## Scope

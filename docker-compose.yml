@@ -68,6 +68,9 @@ services:
     restart: unless-stopped
 
   nzbget:
+    # linuxserver docs: Web UI at http://host:6789/ (root). NZBGet also
+    # serves the same UI under /nzbget/ (useful behind a reverse proxy).
+    # There is no WEB_ROOT env var on this image.
     image: lscr.io/linuxserver/nzbget:latest
     container_name: nzbget
     environment:
@@ -81,4 +84,15 @@ services:
       - ${DOWNLOADS_DIR:-./downloads}:/downloads
     ports:
       - "${NZBGET_PORT:-6789}:6789"
+    healthcheck:
+      # Root / is the primary UI. /nzbget/ is a built-in alias (trailing slash).
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:6789/ >/dev/null || curl -fsS http://127.0.0.1:6789/nzbget/ >/dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     restart: unless-stopped
