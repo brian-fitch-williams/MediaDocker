@@ -1,0 +1,12 @@
+.env
+config/**
+!config/.gitkeep
+downloads/**
+!downloads/.gitkeep
+media/tv/**
+!media/tv/.gitkeep
+media/movies/**
+!media/movies/.gitkeep
+config/plex-transcode/**
+*.log
+.DS_Store
