@@ -1,0 +1,7 @@
+.env
+config/
+downloads/
+media/
+*.db
+*.db-shm
+*.db-wal

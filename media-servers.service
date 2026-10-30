@@ -1,0 +1,15 @@
+[Unit]
+Description=Start Sonarr, Radarr, Plex, NZBGet, and RustDesk
+After=docker.service network-online.target local-fs.target
+Wants=network-online.target
+Requires=docker.service
+RequiresMountsFor=/disks/media3
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/home/dell/MediaDocker/start-media.sh
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
