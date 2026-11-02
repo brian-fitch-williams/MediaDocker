@@ -7,8 +7,9 @@
 
 [Unit]
 Description=Headless graphical session (Xvfb + XFCE + RustDesk) for dell
-After=network.target rustdesk.service
-Wants=rustdesk.service
+# Prefer user units + linger. Do not Want system rustdesk.service: on a
+# headless box that unit fights user --server on DISPLAY=:1 (mask it instead).
+After=network.target
 
 [Service]
 Type=simple

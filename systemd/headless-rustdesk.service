@@ -1,18 +1,22 @@
 [Unit]
-Description=RustDesk GUI on headless DISPLAY=:1
+Description=RustDesk server on headless DISPLAY=:1
 After=xvfb-display.service headless-xfce.service
 Requires=xvfb-display.service
 Wants=headless-xfce.service
+PartOf=headless-desktop.target
 
 [Service]
 Type=simple
-UnsetEnvironment=SESSION_MANAGER DESKTOP_SESSION GDMSESSION XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
+UnsetEnvironment=SESSION_MANAGER DESKTOP_SESSION GDMSESSION XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP WAYLAND_DISPLAY
 Environment=DISPLAY=:1
 Environment=XDG_SESSION_TYPE=x11
 Environment=DESKTOP_SESSION=xfce
 Environment=XDG_CURRENT_DESKTOP=XFCE
+Environment=RUSTDESK_FORCED_DISPLAY_SERVER=x11
+# Wait for XFCE/window manager so capture attaches to a live desktop
 ExecStartPre=/bin/sleep 3
-ExecStart=/usr/bin/rustdesk
+# User --server provides incoming capture when no LightDM seat exists
+ExecStart=/usr/share/rustdesk/rustdesk --server
 Restart=on-failure
 RestartSec=5
 
