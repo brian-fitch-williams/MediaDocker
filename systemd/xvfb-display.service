@@ -1,0 +1,13 @@
+[Unit]
+Description=Xvfb virtual display on :1 (1920x1080x24)
+Documentation=man:Xvfb(1)
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/Xvfb :1 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

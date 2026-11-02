@@ -106,10 +106,29 @@ If imports fail with permission errors, align `PUID`/`PGID` with the owner of `.
 .
 ├── docker-compose.yml   # Sonarr, Radarr, Plex, Jellyfin, NZBGet
 ├── .env.example         # Paths, ports, PUID/PGID/TZ, claim token
+├── bin/headless-desktop.sh  # Optional system-unit helper for Xvfb+XFCE+RustDesk
+├── systemd/             # User (and optional system) units for headless RustDesk
 ├── config/              # Per-app config (created on first run; gitignored)
 ├── media/tv             # TV library
 ├── media/movies         # Movie library
 └── downloads            # NZBGet output → *arr import
+```
+
+## Headless RustDesk (no monitor)
+
+On a headless Linux Mint host, install the user units from `systemd/` so Xvfb `:1`, XFCE, and the RustDesk GUI survive login/reboot:
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp systemd/xvfb-display.service systemd/headless-xfce.service \
+   systemd/headless-rustdesk.service systemd/headless-desktop.target \
+   ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now headless-desktop.target
+# Once (reboot without a login session): sudo loginctl enable-linger "$USER"
+export DISPLAY=:1
+xdpyinfo | grep dimensions
+rustdesk --get-id
 ```
 
 ## Scope

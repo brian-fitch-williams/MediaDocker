@@ -1,0 +1,30 @@
+# Optional system unit (needs sudo). Prefer user units + linger when possible.
+# Install:
+#   sudo cp systemd/headless-desktop-system.service /etc/systemd/system/
+#   sudo cp bin/headless-desktop.sh /home/dell/MediaDocker/bin/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now headless-desktop-system.service
+
+[Unit]
+Description=Headless graphical session (Xvfb + XFCE + RustDesk) for dell
+After=network.target rustdesk.service
+Wants=rustdesk.service
+
+[Service]
+Type=simple
+User=dell
+Group=dell
+WorkingDirectory=/home/dell
+Environment=HOME=/home/dell
+Environment=USER=dell
+Environment=DISPLAY=:1
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=XDG_SESSION_TYPE=x11
+ExecStart=/home/dell/MediaDocker/bin/headless-desktop.sh
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
