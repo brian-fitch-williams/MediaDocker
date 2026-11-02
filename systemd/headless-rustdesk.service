@@ -1,0 +1,20 @@
+[Unit]
+Description=RustDesk GUI on headless DISPLAY=:1
+After=xvfb-display.service headless-xfce.service
+Requires=xvfb-display.service
+Wants=headless-xfce.service
+
+[Service]
+Type=simple
+UnsetEnvironment=SESSION_MANAGER DESKTOP_SESSION GDMSESSION XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
+Environment=DISPLAY=:1
+Environment=XDG_SESSION_TYPE=x11
+Environment=DESKTOP_SESSION=xfce
+Environment=XDG_CURRENT_DESKTOP=XFCE
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/rustdesk
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

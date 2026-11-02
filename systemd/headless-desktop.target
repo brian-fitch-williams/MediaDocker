@@ -1,0 +1,7 @@
+[Unit]
+Description=Headless desktop stack (Xvfb + XFCE + RustDesk)
+Wants=xvfb-display.service headless-xfce.service headless-rustdesk.service
+After=xvfb-display.service headless-xfce.service headless-rustdesk.service
+
+[Install]
+WantedBy=default.target
