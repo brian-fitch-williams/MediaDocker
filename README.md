@@ -107,12 +107,40 @@ If imports fail with permission errors, align `PUID`/`PGID` with the owner of `.
 ├── docker-compose.yml   # Sonarr, Radarr, Plex, Jellyfin, NZBGet
 ├── .env.example         # Paths, ports, PUID/PGID/TZ, claim token
 ├── bin/headless-desktop.sh  # Optional system-unit helper for Xvfb+XFCE+RustDesk
-├── systemd/             # User (and optional system) units for headless RustDesk
+├── systemd/             # Boot units: media-docker (+ headless RustDesk)
 ├── config/              # Per-app config (created on first run; gitignored)
 ├── media/tv             # TV library
 ├── media/movies         # Movie library
 └── downloads            # NZBGet output → *arr import
 ```
+
+## Start on boot
+
+Containers use `restart: unless-stopped`, so once `docker` is enabled they return after reboot. Enable Docker if needed:
+
+```bash
+sudo systemctl enable --now docker
+```
+
+Optional compose oneshot (applies the compose file on boot; adjust `WorkingDirectory` to the checkout that owns your live `.env` / media):
+
+```bash
+# System unit (needs root):
+sudo cp systemd/media-docker.service /etc/systemd/system/
+# edit WorkingDirectory if needed, then:
+sudo systemctl daemon-reload
+sudo systemctl enable --now media-docker.service
+
+# Or user unit (linger must be on so it runs without a GUI login):
+mkdir -p ~/.config/systemd/user
+cp systemd/media-docker.user.service ~/.config/systemd/user/media-docker.service
+# edit WorkingDirectory if needed, then:
+systemctl --user daemon-reload
+systemctl --user enable --now media-docker.service
+# Once: sudo loginctl enable-linger "$USER"
+```
+
+On this host an existing system unit (`media-servers.service`) already runs `docker compose up -d` from the live MediaDocker directory; the user unit above is a spare.
 
 ## Headless RustDesk (no monitor)
 
