@@ -1,0 +1,19 @@
+[Unit]
+Description=MediaDocker compose stack (user) — Sonarr, Radarr, Plex, Jellyfin, NZBGet
+Documentation=file:///home/dell/Developmenet/MediaDocker/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Set WorkingDirectory to the checkout that owns your live .env and media paths.
+# On this host the live stack (with media) is often /home/dell/MediaDocker.
+WorkingDirectory=/home/dell/Developmenet/MediaDocker
+# Prefer Docker restart policy (unless-stopped) after reboot; this ensures
+# `docker compose up -d` still runs when the user session starts (linger).
+ExecStart=/usr/bin/docker compose up -d
+TimeoutStartSec=300
+
+[Install]
+WantedBy=default.target
