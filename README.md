@@ -144,7 +144,7 @@ On this host an existing system unit (`media-servers.service`) already runs `doc
 
 ## Headless RustDesk (no monitor)
 
-On a headless Linux Mint host, install the user units from `systemd/` so Xvfb `:1`, XFCE, and the RustDesk GUI survive login/reboot:
+On a headless Linux Mint host, install the user units from `systemd/` so Xvfb `:1`, XFCE, and RustDesk `--server` survive login/reboot. **Mask LightDM and system `rustdesk.service`** so an empty seat0 `:0` cannot steal capture (see Project doc `docs/headless-rustdesk.md`).
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -154,8 +154,11 @@ cp systemd/xvfb-display.service systemd/headless-xfce.service \
 systemctl --user daemon-reload
 systemctl --user enable --now headless-desktop.target
 # Once (reboot without a login session): sudo loginctl enable-linger "$USER"
+# Host guards (needs root) — empty LightDM/:0 causes "no displays":
+sudo systemctl mask lightdm rustdesk
 export DISPLAY=:1
 xdpyinfo | grep dimensions
+tr '\0' '\n' < /proc/$(pgrep -n -f 'rustdesk --server')/environ | grep DISPLAY
 rustdesk --get-id
 ```
 
