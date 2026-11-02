@@ -1,4 +1,4 @@
-# Media stack: Sonarr, Radarr, Plex Media Server, NZBGet
+# Media stack: Sonarr, Radarr, Plex, Jellyfin, NZBGet
 # Start everything: docker compose up -d
 #
 # Copy .env.example to .env and adjust paths/ports/PUID/PGID/TZ as needed.
@@ -65,6 +65,23 @@ services:
     # For LAN discovery and remote access, host networking is often simpler
     # on Linux. To try it: comment out `ports:` above and uncomment below.
     # network_mode: host
+    restart: unless-stopped
+
+  # Side-by-side with Plex: same /tv and /movies mounts for comparison
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-Etc/UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/jellyfin:/config
+      - ${TV_DIR:-./media/tv}:/tv
+      - ${MOVIES_DIR:-./media/movies}:/movies
+    ports:
+      - "${JELLYFIN_PORT:-8096}:8096"
+      - "${JELLYFIN_HTTPS_PORT:-8920}:8920"
     restart: unless-stopped
 
   nzbget:

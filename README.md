@@ -1,6 +1,6 @@
-# Media stack (Sonarr · Radarr · Plex · NZBGet)
+# Media stack (Sonarr · Radarr · Plex · Jellyfin · NZBGet)
 
-One Docker Compose project that brings up **Sonarr**, **Radarr**, **Plex Media Server**, and **NZBGet** together. Images are from [linuxserver.io](https://www.linuxserver.io/) (`lscr.io/linuxserver/...`).
+One Docker Compose project that brings up **Sonarr**, **Radarr**, **Plex Media Server**, **Jellyfin**, and **NZBGet** together. Images are from [linuxserver.io](https://www.linuxserver.io/) (`lscr.io/linuxserver/...`). Plex and Jellyfin share the same `/tv` and `/movies` mounts so you can try both side by side.
 
 ## Prerequisites
 
@@ -14,7 +14,9 @@ cp .env.example .env   # optional; defaults work without it
 docker compose up -d
 ```
 
-All four services start. Check status with `docker compose ps` and logs with `docker compose logs -f`.
+All five services start. Check status with `docker compose ps` and logs with `docker compose logs -f`.
+
+Start only Jellyfin: `docker compose up -d jellyfin`.
 
 Stop with `docker compose down` (volumes on disk are kept).
 
@@ -25,9 +27,10 @@ Stop with `docker compose down` (volumes on disk are kept).
 | Sonarr  | http://localhost:8989 | `SONARR_PORT` |
 | Radarr  | http://localhost:7878 | `RADARR_PORT` |
 | Plex    | http://localhost:32400/web | `PLEX_PORT` |
+| Jellyfin | http://localhost:8096 | `JELLYFIN_PORT` |
 | NZBGet  | http://localhost:6789 | `NZBGET_PORT` |
 
-Plex also publishes companion discovery ports (3005, 8324, 32469 TCP; 1900, 32410–32414 UDP) for LAN clients when using the default bridge network.
+Plex also publishes companion discovery ports (3005, 8324, 32469 TCP; 1900, 32410–32414 UDP) for LAN clients when using the default bridge network. Jellyfin also publishes HTTPS on `${JELLYFIN_HTTPS_PORT:-8920}`.
 
 ## Volumes
 
@@ -37,9 +40,10 @@ Plex also publishes companion discovery ports (3005, 8324, 32469 TCP; 1900, 3241
 | `./config/radarr` | Radarr | `/config` |
 | `./config/plex` | Plex | `/config` |
 | `./config/plex-transcode` | Plex | `/transcode` |
+| `./config/jellyfin` | Jellyfin | `/config` |
 | `./config/nzbget` | NZBGet | `/config` |
-| `./media/tv` | Sonarr, Plex | `/tv` |
-| `./media/movies` | Radarr, Plex | `/movies` |
+| `./media/tv` | Sonarr, Plex, Jellyfin | `/tv` |
+| `./media/movies` | Radarr, Plex, Jellyfin | `/movies` |
 | `./downloads` | Sonarr, Radarr, NZBGet | `/downloads` |
 
 Override roots with `CONFIG_DIR`, `TV_DIR`, `MOVIES_DIR`, `DOWNLOADS_DIR`, and `PLEX_TRANSCODE_DIR` in `.env`.
@@ -70,6 +74,12 @@ Match `PUID`/`PGID` to your host user (`id -u` / `id -g`) so media files stay wr
 
 **Host networking (Linux):** if clients cannot discover Plex on the LAN, edit `docker-compose.yml`: comment out the `ports:` block under `plex` and uncomment `network_mode: host`. With host mode, published port mappings are ignored; use http://localhost:32400/web directly. On Docker Desktop (macOS/Windows), stick with the default bridge + published ports.
 
+### Jellyfin first-run wizard
+
+1. Open http://localhost:8096 and complete the setup wizard (language, admin user, media libraries).
+2. Add libraries using the same paths as Plex: `/tv` for TV and `/movies` for movies.
+3. Config lives under `./config/jellyfin` (or `${CONFIG_DIR}/jellyfin`).
+
 ### NZBGet credentials
 
 Default web UI login is **nzbget** / **tegbzn6789** (linuxserver image defaults). Change via `NZBGET_USER` / `NZBGET_PASS` before first start, or in Settings → Security after login. Configure your Usenet provider under Settings → News-Servers.
@@ -94,9 +104,9 @@ If imports fail with permission errors, align `PUID`/`PGID` with the owner of `.
 
 ```
 .
-├── docker-compose.yml   # Sonarr, Radarr, Plex, NZBGet
+├── docker-compose.yml   # Sonarr, Radarr, Plex, Jellyfin, NZBGet
 ├── .env.example         # Paths, ports, PUID/PGID/TZ, claim token
-├── config/              # Per-app config (created on first run)
+├── config/              # Per-app config (created on first run; gitignored)
 ├── media/tv             # TV library
 ├── media/movies         # Movie library
 └── downloads            # NZBGet output → *arr import
@@ -104,4 +114,4 @@ If imports fail with permission errors, align `PUID`/`PGID` with the owner of `.
 
 ## Scope
 
-This repo is only the four-service compose stack—no auth gateway, databases, reverse proxy, or extra downloaders. Add those later if you need them.
+This repo is the five-service compose stack—no auth gateway, databases, reverse proxy, or extra downloaders. Add those later if you need them.

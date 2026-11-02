@@ -1,0 +1,6 @@
+# Local secrets / overrides
+.env
+
+# Runtime app config (keep empty tree via .gitkeep)
+config/*
+!config/.gitkeep
