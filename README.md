@@ -165,3 +165,19 @@ rustdesk --get-id
 ## Scope
 
 This repo is the five-service compose stack—no auth gateway, databases, reverse proxy, or extra downloaders. Add those later if you need them.
+
+## Quality size limits
+
+Sonarr and Radarr quality **max sizes** (MB/min) are capped for direct-play-friendly bitrates on local disk:
+
+- Formula: `MB/min = Mbps × 7.5`
+- 1080p TV ≈ 180 MB/min (~24 Mbps); 1080p movies ≈ 225–300 MB/min (~30–40 Mbps)
+- 2160p capped (~450 MB/min Sonarr / 399 MB/min Radarr — Radarr treats ≥400 as unlimited)
+- Remuxes clamped so huge remuxes are rejected
+
+Re-apply against a running stack (uses ApiKey from each `config.xml`):
+
+```bash
+CONFIG_DIR=/home/dell/MediaDocker/config python3 bin/apply-quality-size-limits.py
+# or: python3 bin/apply-quality-size-limits.py --dry-run
+```
